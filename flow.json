@@ -1,0 +1,58 @@
+{
+	"GET_STARTED": {
+		"nextAction": "ZIPCODE",
+		"response": {
+			"id": "{{id}}",
+			"text": "Hi {{name}} welcome, What do you want to recycle?"
+		}
+	},
+	"START": {
+		"nextAction": "ZIPCODE",
+		"response": {
+			"id": "{{id}}",
+			"text": "Hi, What do you want to recycle?"
+		}
+	},
+	"ZIPCODE": {
+		"nextAction": "VALIDATE_ZIPCODE",
+		"response": {
+			"id": "{{id}}",
+			"text": "I have to check based upon where you are. What zip code are you in? (I will save this location for 5 minutes in cases you have more than one question right now)"
+		}
+	},
+	"ZIPCODE_NOT_VALID": {
+		"nextAction": "START",
+		"response": {
+			"id": "{{id}}",
+			"text": "Sorry, currently we are not providing this service to this zipcode"
+		}
+	},
+	"NEED_INFO": {
+		"nextAction": "RECYCLE",
+		"response": {
+			"id": "{{id}}",
+			"text": "I need a bit more information on this item. Can you tell me a brand and item name (e.g, Stoneyfield yogurt container)"
+		}
+	},
+	"RECYCLE_YES": {
+		"nextAction": "START",
+		"response": {
+			"id": "{{id}}",
+			"text": "Whoo-hoo! Yes, you can recycle that!"
+		}
+	},
+	"RECYCLE_NO": {
+		"nextAction": "START",
+		"response": {
+			"id": "{{id}}",
+			"text": "Nope! Better put that item in the trash."
+		}
+	},
+	"CHAT": {
+		"nextAction": "START",
+		"response": {
+			"id": "{{id}}",
+			"text": "I am not sure about that item yet, but I am learning quickly. Check back with me later!"
+		}
+	}
+}
