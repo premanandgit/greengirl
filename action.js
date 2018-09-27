@@ -7,9 +7,9 @@ const flowTemplates = require('./flow.json')
 module.exports = (customer, action, intent) => {
 	let { message } = intent
 	let messageText = message ? message.text : null
-	console.log('messageText ', messageText)
-	console.log('action ', action)
-	console.log('customer ', customer)
+	// console.log('messageText ', messageText)
+	// console.log('action ', action)
+	// console.log('customer ', customer)
 
 	function recycle() {
 		if (customer.zipcode) customer.searchText = messageText
