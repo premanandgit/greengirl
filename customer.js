@@ -3,7 +3,7 @@ module.exports = async (customerId, profile) => {
 	return ({
 		id: customerId,
 		name: profile ? profile.first_name : "Face Book User",
-		action: "START",
+		action: '',
 		searchText: {},
 		zipcode: null,
 		profile: profile

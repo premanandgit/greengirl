@@ -3,35 +3,57 @@ const Algolia = require('botlib').Algolia
 const algolia = new Algolia();
 const jsont = require('mustache')
 const flowTemplates = require('./flow.json')
+const dialogflowAction = require('./dialogflow-action')
 
 module.exports = (customer, action, intent) => {
 	let { message } = intent
 	let messageText = message ? message.text : null
-	// console.log('messageText ', messageText)
-	// console.log('action ', action)
-	// console.log('customer ', customer)
+	console.log('messageText ', messageText)
+	console.log('action ', action)
+	console.log('customer ', customer)
 
 	function recycle() {
-		if (customer.zipcode) customer.searchText = messageText
-		if (!customer.zipcode) customer.zipcode = messageText
-		let search = algolia.isRecyclable(customer.searchText)
+		algolia.isRecyclable(customer.searchText)
 			.then(searchResult => {
-				let template = null
+				if (searchResult) {
+					let template = null
 
-				if (searchResult.recycle === true) {
-					template = flowTemplates.RECYCLE_YES
-				} else if (searchResult.recycle === false) {
-					template = flowTemplates.RECYCLE_NO
-				} else if (searchResult.count > 1) {
-					template = flowTemplates.NEED_INFO
-				} else {
-					template = flowTemplates.CHAT
+					if (searchResult.recycle === true) {
+						template = flowTemplates.RECYCLE_YES
+					} else if (searchResult.recycle === false) {
+						template = flowTemplates.RECYCLE_NO
+					} else if (searchResult.count > 1) {
+						template = flowTemplates.NEED_INFO
+					} else {
+						template = flowTemplates.CHAT
+					}
+
+					let templateJson = JSON.parse(jsont.render(JSON.stringify(template), { id: customer.id, name: customer.name }))
+					customer.action = templateJson.nextAction
+					messenger.sendTextMessage(templateJson.response)
 				}
-
-				let templateJson = JSON.parse(jsont.render(JSON.stringify(template), { id: customer.id, name: customer.name }))
-				customer.action = templateJson.nextAction
-				messenger.sendTextMessage(templateJson.response)
 			})
+	}
+
+	function callDialogFlow(shouldCheckRecycle) {
+		dialogflowAction(customer, customer.searchText)
+			.then(dialogResult => {
+				if (dialogResult.next && shouldCheckRecycle) {
+					// messenger.sendTextMessage({ id: customer.id, text: "Please wait, searching better result .." })
+					recycle(customer.searchText)
+				} else if(dialogResult.next) {
+					chat()
+				}
+			})
+			.catch(error => {
+				console.log("Error ", error)
+				chat()
+			})
+	}
+
+	function chat() {
+		let templateJson = JSON.parse(jsont.render(JSON.stringify(flowTemplates.CHAT), { id: customer.id }))
+		messenger.sendTextMessage(templateJson.response)
 	}
 
 	switch (action) {
@@ -39,7 +61,7 @@ module.exports = (customer, action, intent) => {
 			let getStarted = JSON.parse(jsont.render(JSON.stringify(flowTemplates.GET_STARTED), { id: customer.id, name: customer.name }))
 			customer.action = customer.zipcode ? "RECYCLE" : getStarted.nextAction
 			messenger.sendTextMessage(getStarted.response)
-			break	
+			break
 		case "START":
 			let start = JSON.parse(jsont.render(JSON.stringify(flowTemplates.START), { id: customer.id, name: customer.name }))
 			customer.action = customer.zipcode ? "RECYCLE" : start.nextAction
@@ -55,22 +77,38 @@ module.exports = (customer, action, intent) => {
 			let validZipcode = algolia.isValidZipcode(messageText)
 				.then(isValid => {
 					if (isValid) {
-						recycle()
+						customer.zipcode = messageText
+						customer.action = ''
+						callDialogFlow(true)
 					} else {
 						let zipcodeNotValid = JSON.parse(jsont.render(JSON.stringify(flowTemplates.ZIPCODE_NOT_VALID), { id: customer.id, name: customer.name }))
-						customer.action = zipcodeNotValid.nextAction
+						customer.action = ''
+						customer.zipcode = null
 						messenger.sendTextMessage(zipcodeNotValid.response)
 					}
 				})
 			break
 		case "RECYCLE":
-			recycle()
+			customer.searchText = messageText
+			if(customer.zipcode) {
+				callDialogFlow(true)
+			} else {
+				customer.action = ''
+				callDialogFlow()
+			} 
 			break
 		default:
-			let chat = JSON.parse(jsont.render(JSON.stringify(flowTemplates.CHAT), { id: customer.id, name: customer.name }))
-			customer.action = chat.nextAction
-			messenger.sendTextMessage(chat.response)
-			messenger.handOver({ id: customer.id })
-				.then(result => console.log('handover result', result))
+			customer.searchText = messageText
+			if(customer.zipcode) {
+				callDialogFlow(true)
+			} else {
+				customer.action = ''
+				callDialogFlow()
+			} 
+			// let chat = JSON.parse(jsont.render(JSON.stringify(flowTemplates.CHAT), { id: customer.id, name: customer.name }))
+			// customer.action = chat.nextAction
+			// messenger.sendTextMessage(chat.response)
+			// messenger.handOver({ id: customer.id })
+			// 	.then(result => console.log('handover result', result))
 	}
 }

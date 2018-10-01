@@ -35,14 +35,14 @@
 		}
 	},
 	"RECYCLE_YES": {
-		"nextAction": "START",
+		"nextAction": "RECYCLE",
 		"response": {
 			"id": "{{id}}",
 			"text": "Whoo-hoo! Yes, you can recycle that!"
 		}
 	},
 	"RECYCLE_NO": {
-		"nextAction": "START",
+		"nextAction": "RECYCLE",
 		"response": {
 			"id": "{{id}}",
 			"text": "Nope! Better put that item in the trash."
