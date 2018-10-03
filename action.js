@@ -12,10 +12,11 @@ module.exports = (customer, action, intent) => {
 	console.log('action ', action)
 	console.log('customer ', customer)
 
-	function recycle() {
-		algolia.isRecyclable(customer.searchText)
+	function recycle(text) {
+		algolia.isRecyclable(text ? text : customer.searchText)
 			.then(searchResult => {
 				if (searchResult) {
+					console.log('searchResult ', searchResult)
 					let template = null
 
 					if (searchResult.recycle === true) {
@@ -40,7 +41,7 @@ module.exports = (customer, action, intent) => {
 			.then(dialogResult => {
 				if (dialogResult.next && shouldCheckRecycle) {
 					// messenger.sendTextMessage({ id: customer.id, text: "Please wait, searching better result .." })
-					recycle(customer.searchText)
+					recycle(dialogResult.text)
 				} else if(dialogResult.next) {
 					chat()
 				}

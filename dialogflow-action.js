@@ -18,6 +18,9 @@ module.exports = (customer, messageText) => {
         console.log('displayName ', displayName)
 
         switch (displayName.toLowerCase()) {
+          case "recycle-items":
+            console.log("responseText ", responseText)
+            return ({ next: true, text: responseText})
           case "recycle-center":
           case "greet":
             messenger.sendTextMessage({ id: customer.id, text: responseText })
